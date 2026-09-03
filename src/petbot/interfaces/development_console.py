@@ -19,6 +19,7 @@ class DevelopmentConsole:
     personality_service: PersonalityService
     input_fn: Callable[[str], str] = input
     output_fn: Callable[[str], None] = print
+    on_play: Callable[[], None] = lambda: None
 
     def run(self) -> None:
         self.output_fn("Escribe 'ayuda' para ver los comandos.\n")
@@ -78,6 +79,7 @@ class DevelopmentConsole:
             emotional_changes={Emotion.HAPPINESS: 8, Emotion.ENERGY: 8},
             personality_changes=[PersonalityChange(Trait.PLAYFULNESS, 1, "jugó con su propietario")],
         )
+        self.on_play()
         self.output_fn(f"¡Qué divertido! Alegría: {emotions.values[Emotion.HAPPINESS]}; juego: {personality.values[Trait.PLAYFULNESS]}.")
 
     def _show_state(self) -> None:

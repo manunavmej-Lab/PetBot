@@ -18,11 +18,13 @@ def test_console_remembers_lists_and_plays() -> None:
         pet_repository = SQLitePetRepository(database_path)
         session = PetService(pet_repository).create_active(name="Boti", owner_name="Manuel", preset=PersonalityPreset.BALANCED)
         output: list[str] = []
+        reactions: list[str] = []
         console = DevelopmentConsole(
             session=session,
             memory_service=MemoryService(SQLiteMemoryRepository(database_path)),
             personality_service=PersonalityService(pet_repository),
             output_fn=output.append,
+            on_play=lambda: reactions.append("play"),
         )
 
         console.handle("recuerda que me gusta el azul")
@@ -33,6 +35,7 @@ def test_console_remembers_lists_and_plays() -> None:
         assert "Lo recordaré: que me gusta el azul" in output
         assert "- que me gusta el azul" in output
         assert any("Qué divertido" in line for line in output)
+        assert reactions == ["play"]
         assert "Estado de Boti:" in output
         assert "Emociones:" in output
         assert "Personalidad:" in output

@@ -37,6 +37,9 @@ Para iniciar PETBOT:
 python -m petbot.main
 ```
 
+Al iniciar, se abre la cara simulada con una expresión neutral. La consola queda disponible en la terminal y las interacciones, como `jugar`, producen una reacción visual.
+
+
 En el primer arranque se solicitan el nombre de la mascota, el propietario y el preset de personalidad. Los datos se guardan en `data/petbot.db`; en ejecuciones siguientes se carga la mascota activa.
 
 La consola de desarrollo permite probar el cerebro sin voz ni hardware:
@@ -55,6 +58,14 @@ Para ejecutar las pruebas:
 
 ```bash
 pytest
+```
+
+## Cara simulada
+
+Para abrir la demo de la cara de PETBOT en una ventana de 800×480:
+
+```bash
+python -m petbot.infrastructure.face.demo
 ```
 
 ## Orden de implementación

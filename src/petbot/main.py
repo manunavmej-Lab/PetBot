@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import os
+import select
+import sys
 from pathlib import Path
 
 from petbot.domain.personality.personality import PersonalityPreset
 from petbot.infrastructure.database.pet_repository import SQLitePetRepository
 from petbot.infrastructure.database.memory_repository import SQLiteMemoryRepository
 from petbot.interfaces.development_console import DevelopmentConsole
+from petbot.infrastructure.face.desktop_face_display import DesktopFaceDisplay
+from petbot.infrastructure.face.reactions import DesktopFaceReactions
 from petbot.services.memory_service import MemoryService
 from petbot.services.personality_service import PersonalityService
 from petbot.services.pet_service import PetService
@@ -27,11 +31,38 @@ def main() -> None:
     else:
         print("Cargando mascota...")
     print(f"Hola {session.pet.identity.owner_name}. Soy {session.pet.identity.name}.")
-    DevelopmentConsole(
+    face = DesktopFaceDisplay()
+    reactions = DesktopFaceReactions(face)
+    reactions.on_start()
+    console = DevelopmentConsole(
         session=session,
         memory_service=MemoryService(SQLiteMemoryRepository(database_path)),
         personality_service=PersonalityService(pet_repository),
-    ).run()
+        on_play=reactions.on_play,
+    )
+
+    print("Escribe 'ayuda' para ver los comandos.\n")
+    _run_console_with_face(console, reactions, face)
+    face.run()
+
+
+def _run_console_with_face(console: DevelopmentConsole, reactions: DesktopFaceReactions, face: DesktopFaceDisplay) -> None:
+    """Lee la terminal sin bloquear el bucle gráfico de Tk en macOS."""
+    def prompt() -> None:
+        print("PETBOT > ", end="", flush=True)
+
+    def poll_terminal() -> None:
+        ready, _, _ = select.select([sys.stdin], [], [], 0)
+        if ready:
+            command = sys.stdin.readline()
+            if not command or console.handle(command):
+                reactions.close()
+                return
+            prompt()
+        face.schedule(50, poll_terminal)
+
+    prompt()
+    face.schedule(50, poll_terminal)
 
 
 def _ask_preset() -> PersonalityPreset:
