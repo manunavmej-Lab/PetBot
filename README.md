@@ -56,6 +56,8 @@ PETBOT > salir
 
 También puedes escribir frases normales en el modo simulado, por ejemplo `hola`, `estoy triste` o `me gusta dormir al sol`. Buvi responderá en texto, cambiará su expresión y, en el último caso, propondrá y guardará un recuerdo.
 
+En macOS, la mascota escucha desde el inicio. Tras conceder los permisos de micrófono y reconocimiento de voz, di su nombre en cualquier parte de la frase para activarla: `Bulvi, hola`, `hola Bulvi` o `estoy triste, Bulvi`. Las frases sin su nombre se ignoran. El comando `hablar` sigue disponible para una prueba manual.
+
 Para ejecutar las pruebas:
 
 ```bash

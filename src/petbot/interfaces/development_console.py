@@ -11,6 +11,7 @@ from petbot.domain.personality.evolution import PersonalityChange
 from petbot.domain.personality.traits import Trait
 from petbot.services.memory_service import MemoryService
 from petbot.services.brain_service import BrainService
+from petbot.services.voice_service import VoiceService
 from petbot.services.personality_service import PersonalityService
 from petbot.services.pet_service import PetSession
 
@@ -25,7 +26,9 @@ class DevelopmentConsole:
     on_play: Callable[[], None] = lambda: None
     on_expression: Callable[[Expression], None] = lambda expression: None
     on_blink: Callable[[], None] = lambda: None
+    on_speech: Callable[[str], None] = lambda text: None
     brain_service: BrainService | None = None
+    voice_service: VoiceService | None = None
 
     def run(self) -> None:
         self.output_fn("Escribe 'ayuda' para ver los comandos.\n")
@@ -40,7 +43,7 @@ class DevelopmentConsole:
             self.output_fn("Hasta pronto.")
             return True
         if normalized in {"ayuda", "help"}:
-            self.output_fn("Comandos: ayuda, manual, estado, recuerda <texto>, recuerdos, jugar, salir")
+            self.output_fn("Comandos: ayuda, manual, hablar, estado, recuerda <texto>, recuerdos, jugar, salir")
             return False
         if normalized == "manual":
             self._show_manual()
@@ -56,6 +59,9 @@ class DevelopmentConsole:
             return False
         if normalized == "jugar":
             self._play()
+            return False
+        if normalized == "hablar":
+            self._listen()
             return False
         self._converse(normalized)
         return False
@@ -107,7 +113,19 @@ class DevelopmentConsole:
         self.output_fn("Cada interacción solo puede cambiar un rasgo un máximo de 2 puntos, siempre entre 0 y 100.")
         self.output_fn("Ejemplos: jugar aumenta el rasgo juego en 1 punto; las experiencias repetidas podrían influir en calma o curiosidad.")
         self.output_fn("Prueba: 'jugar', después 'estado'. Usa 'recuerda me gusta el azul' y 'recuerdos' para probar memoria.")
-        self.output_fn("Comandos: estado, recuerda <texto>, recuerdos, jugar, salir.")
+        self.output_fn("Comandos: hablar, estado, recuerda <texto>, recuerdos, jugar, salir.")
+
+    def _listen(self) -> None:
+        if self.voice_service is None:
+            self.output_fn("La voz no está disponible.")
+            return
+        try:
+            text = self.voice_service.listen()
+        except (RuntimeError, TimeoutError) as error:
+            self.output_fn(f"No he podido escucharte: {error}")
+            return
+        self.output_fn(f"Te he oído: {text}")
+        self._converse(text)
 
     def _converse(self, text: str) -> None:
         if self.brain_service is None:
@@ -128,6 +146,11 @@ class DevelopmentConsole:
         if "BLINK" in decision.actions:
             self.on_blink()
         self.output_fn(f"{self.session.pet.identity.name}: {decision.speech}")
+        self.on_speech(decision.speech)
+
+    def process_spoken_text(self, text: str) -> None:
+        self.output_fn(f"Te he oído: {text}")
+        self._converse(text)
 
 
 _LABELS = {

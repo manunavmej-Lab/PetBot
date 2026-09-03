@@ -3,17 +3,22 @@ from __future__ import annotations
 import os
 import select
 import sys
+from collections.abc import Callable
+from queue import Empty, SimpleQueue
 from pathlib import Path
 
 from petbot.domain.personality.personality import PersonalityPreset
 from petbot.infrastructure.database.pet_repository import SQLitePetRepository
 from petbot.infrastructure.database.memory_repository import SQLiteMemoryRepository
 from petbot.infrastructure.ai.simulated_provider import SimulatedAIProvider
+from petbot.infrastructure.voice.macos_voice import MacSpeaker, MacSpeechToText, MacTextToSpeech
 from petbot.interfaces.development_console import DevelopmentConsole
 from petbot.infrastructure.face.desktop_face_display import DesktopFaceDisplay
 from petbot.infrastructure.face.reactions import DesktopFaceReactions
 from petbot.services.memory_service import MemoryService
 from petbot.services.brain_service import BrainService
+from petbot.services.voice_service import VoiceService
+from petbot.services.wake_word_service import WakeWordService
 from petbot.services.personality_service import PersonalityService
 from petbot.services.pet_service import PetService
 
@@ -35,6 +40,8 @@ def main() -> None:
     print(f"Hola {session.pet.identity.owner_name}. Soy {session.pet.identity.name}.")
     face = DesktopFaceDisplay()
     reactions = DesktopFaceReactions(face)
+    speaker = MacSpeaker()
+    voice = VoiceService(MacSpeechToText(), MacTextToSpeech(), speaker)
     reactions.on_start()
     console = DevelopmentConsole(
         session=session,
@@ -43,24 +50,35 @@ def main() -> None:
         on_play=reactions.on_play,
         on_expression=reactions.on_expression,
         on_blink=reactions.on_blink,
+        on_speech=voice.speak,
         brain_service=BrainService(SimulatedAIProvider()),
+        voice_service=voice,
     )
 
-    print("Escribe 'ayuda' para ver los comandos.\n")
-    _run_console_with_face(console, reactions, face)
+    spoken_messages: SimpleQueue[str] = SimpleQueue()
+    listener = WakeWordService(MacSpeechToText(), session.pet.identity.name, spoken_messages.put, speaker.is_speaking)
+    listener.start()
+    print(f"{session.pet.identity.name} escucha cuando dices su nombre. Escribe 'ayuda' para ver los comandos.\n")
+    _run_console_with_face(console, reactions, face, spoken_messages, listener.stop)
     face.run()
 
 
-def _run_console_with_face(console: DevelopmentConsole, reactions: DesktopFaceReactions, face: DesktopFaceDisplay) -> None:
+def _run_console_with_face(console: DevelopmentConsole, reactions: DesktopFaceReactions, face: DesktopFaceDisplay, spoken_messages: SimpleQueue[str], stop_listener: Callable[[], None]) -> None:
     """Lee la terminal sin bloquear el bucle gráfico de Tk en macOS."""
     def prompt() -> None:
         print("PETBOT > ", end="", flush=True)
 
     def poll_terminal() -> None:
+        try:
+            while True:
+                console.process_spoken_text(spoken_messages.get_nowait())
+        except Empty:
+            pass
         ready, _, _ = select.select([sys.stdin], [], [], 0)
         if ready:
             command = sys.stdin.readline()
             if not command or console.handle(command):
+                stop_listener()
                 reactions.close()
                 return
             prompt()
