@@ -54,6 +54,8 @@ PETBOT > estado
 PETBOT > salir
 ```
 
+También puedes escribir frases normales en el modo simulado, por ejemplo `hola`, `estoy triste` o `me gusta dormir al sol`. Buvi responderá en texto, cambiará su expresión y, en el último caso, propondrá y guardará un recuerdo.
+
 Para ejecutar las pruebas:
 
 ```bash

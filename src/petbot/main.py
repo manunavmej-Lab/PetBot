@@ -8,10 +8,12 @@ from pathlib import Path
 from petbot.domain.personality.personality import PersonalityPreset
 from petbot.infrastructure.database.pet_repository import SQLitePetRepository
 from petbot.infrastructure.database.memory_repository import SQLiteMemoryRepository
+from petbot.infrastructure.ai.simulated_provider import SimulatedAIProvider
 from petbot.interfaces.development_console import DevelopmentConsole
 from petbot.infrastructure.face.desktop_face_display import DesktopFaceDisplay
 from petbot.infrastructure.face.reactions import DesktopFaceReactions
 from petbot.services.memory_service import MemoryService
+from petbot.services.brain_service import BrainService
 from petbot.services.personality_service import PersonalityService
 from petbot.services.pet_service import PetService
 
@@ -39,6 +41,9 @@ def main() -> None:
         memory_service=MemoryService(SQLiteMemoryRepository(database_path)),
         personality_service=PersonalityService(pet_repository),
         on_play=reactions.on_play,
+        on_expression=reactions.on_expression,
+        on_blink=reactions.on_blink,
+        brain_service=BrainService(SimulatedAIProvider()),
     )
 
     print("Escribe 'ayuda' para ver los comandos.\n")

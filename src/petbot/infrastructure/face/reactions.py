@@ -16,6 +16,12 @@ class DesktopFaceReactions:
     def on_play(self) -> None:
         self._display.enqueue(self._show_play_reaction)
 
+    def on_expression(self, expression: Expression) -> None:
+        self._display.enqueue(lambda: self._show_expression(expression))
+
+    def on_blink(self) -> None:
+        self._display.enqueue(self._display.blink)
+
     def close(self) -> None:
         self._display.enqueue(self._display.close)
 
@@ -25,6 +31,11 @@ class DesktopFaceReactions:
         self._display.look_at(Gaze.LEFT)
         self._display.speak_animation(800)
         self._display.schedule(1_500, self._return_to_neutral)
+
+    def _show_expression(self, expression: Expression) -> None:
+        self._display.set_expression(expression)
+        if expression is not Expression.NEUTRAL:
+            self._display.schedule(2_000, lambda: self._display.set_expression(Expression.NEUTRAL))
 
     def _return_to_neutral(self) -> None:
         self._display.look_at(Gaze.CENTER)

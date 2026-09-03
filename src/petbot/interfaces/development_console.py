@@ -4,10 +4,13 @@ from dataclasses import dataclass
 from typing import Callable
 
 from petbot.domain.memory.memory import MemoryType
+from petbot.domain.brain.decision import BrainRequest
+from petbot.domain.face.face_state import Expression
 from petbot.domain.personality.emotions import Emotion
 from petbot.domain.personality.evolution import PersonalityChange
 from petbot.domain.personality.traits import Trait
 from petbot.services.memory_service import MemoryService
+from petbot.services.brain_service import BrainService
 from petbot.services.personality_service import PersonalityService
 from petbot.services.pet_service import PetSession
 
@@ -20,6 +23,9 @@ class DevelopmentConsole:
     input_fn: Callable[[str], str] = input
     output_fn: Callable[[str], None] = print
     on_play: Callable[[], None] = lambda: None
+    on_expression: Callable[[Expression], None] = lambda expression: None
+    on_blink: Callable[[], None] = lambda: None
+    brain_service: BrainService | None = None
 
     def run(self) -> None:
         self.output_fn("Escribe 'ayuda' para ver los comandos.\n")
@@ -51,7 +57,7 @@ class DevelopmentConsole:
         if normalized == "jugar":
             self._play()
             return False
-        self.output_fn("No conozco ese comando. Escribe 'ayuda'.")
+        self._converse(normalized)
         return False
 
     def _remember(self, content: str) -> None:
@@ -102,6 +108,26 @@ class DevelopmentConsole:
         self.output_fn("Ejemplos: jugar aumenta el rasgo juego en 1 punto; las experiencias repetidas podrían influir en calma o curiosidad.")
         self.output_fn("Prueba: 'jugar', después 'estado'. Usa 'recuerda me gusta el azul' y 'recuerdos' para probar memoria.")
         self.output_fn("Comandos: estado, recuerda <texto>, recuerdos, jugar, salir.")
+
+    def _converse(self, text: str) -> None:
+        if self.brain_service is None:
+            self.output_fn("No conozco ese comando. Escribe 'ayuda'.")
+            return
+        personality, emotions = self.personality_service.get_state(self.session.pet.id)
+        memories = self.memory_service.recall(self.session.pet.id)
+        request = BrainRequest(
+            user_text=text, pet_name=self.session.pet.identity.name, owner_name=self.session.pet.identity.owner_name,
+            personality_summary=", ".join(f"{trait.value}={value}" for trait, value in personality.values.items()),
+            emotional_summary=", ".join(f"{emotion.value}={value}" for emotion, value in emotions.values.items()),
+            memories=[memory.content for memory in memories[:5]],
+        )
+        decision = self.brain_service.converse(request)
+        for candidate in decision.memory_candidates:
+            self.memory_service.remember(pet_id=self.session.pet.id, type=candidate.type, content=candidate.content, importance=candidate.importance, confidence=candidate.confidence, source="cerebro simulado")
+        self.on_expression(decision.expression)
+        if "BLINK" in decision.actions:
+            self.on_blink()
+        self.output_fn(f"{self.session.pet.identity.name}: {decision.speech}")
 
 
 _LABELS = {
