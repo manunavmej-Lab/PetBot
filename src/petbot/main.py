@@ -5,12 +5,17 @@ from pathlib import Path
 
 from petbot.domain.personality.personality import PersonalityPreset
 from petbot.infrastructure.database.pet_repository import SQLitePetRepository
+from petbot.infrastructure.database.memory_repository import SQLiteMemoryRepository
+from petbot.interfaces.development_console import DevelopmentConsole
+from petbot.services.memory_service import MemoryService
+from petbot.services.personality_service import PersonalityService
 from petbot.services.pet_service import PetService
 
 
 def main() -> None:
     database_path = Path(os.environ.get("PETBOT_DATABASE_PATH", "data/petbot.db"))
-    service = PetService(SQLitePetRepository(database_path))
+    pet_repository = SQLitePetRepository(database_path)
+    service = PetService(pet_repository)
     session = service.load_active()
     if session is None:
         print("PETBOT no tiene mascota creada.\n")
@@ -22,6 +27,11 @@ def main() -> None:
     else:
         print("Cargando mascota...")
     print(f"Hola {session.pet.identity.owner_name}. Soy {session.pet.identity.name}.")
+    DevelopmentConsole(
+        session=session,
+        memory_service=MemoryService(SQLiteMemoryRepository(database_path)),
+        personality_service=PersonalityService(pet_repository),
+    ).run()
 
 
 def _ask_preset() -> PersonalityPreset:

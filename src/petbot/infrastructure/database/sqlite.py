@@ -39,6 +39,21 @@ CREATE TABLE IF NOT EXISTS personality_changes (
     cause TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS memories (
+    id TEXT PRIMARY KEY,
+    pet_id TEXT NOT NULL REFERENCES pets(id),
+    type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    normalized_content TEXT NOT NULL,
+    importance REAL NOT NULL CHECK (importance BETWEEN 0 AND 1),
+    confidence REAL NOT NULL CHECK (confidence BETWEEN 0 AND 1),
+    source TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    last_accessed_at TEXT NOT NULL,
+    expires_at TEXT
+);
+CREATE INDEX IF NOT EXISTS memories_by_pet ON memories(pet_id, type, created_at DESC);
+CREATE INDEX IF NOT EXISTS memories_expiration ON memories(expires_at);
 """
 
 

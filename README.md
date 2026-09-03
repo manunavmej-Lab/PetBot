@@ -39,6 +39,18 @@ python -m petbot.main
 
 En el primer arranque se solicitan el nombre de la mascota, el propietario y el preset de personalidad. Los datos se guardan en `data/petbot.db`; en ejecuciones siguientes se carga la mascota activa.
 
+La consola de desarrollo permite probar el cerebro sin voz ni hardware:
+
+```text
+PETBOT > ayuda
+PETBOT > manual
+PETBOT > recuerda que me gusta el azul
+PETBOT > recuerdos
+PETBOT > jugar
+PETBOT > estado
+PETBOT > salir
+```
+
 Para ejecutar las pruebas:
 
 ```bash

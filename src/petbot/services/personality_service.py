@@ -30,3 +30,10 @@ class PersonalityService:
         state = self._repository.load_emotional_state(pet_id).decay(amount)
         self._repository.save_emotional_state(pet_id, state)
         return state
+
+    def get_state(self, pet_id: UUID) -> tuple[Personality, EmotionalState]:
+        stored = self._repository.get_by_id(pet_id)
+        if stored is None:
+            raise ValueError("La mascota no existe.")
+        _, personality = stored
+        return personality, self._repository.load_emotional_state(pet_id)
