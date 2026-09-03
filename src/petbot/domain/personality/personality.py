@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Mapping
 
-from petbot.domain.personality.traits import Trait
+from petbot.domain.personality.traits import Trait, TraitValue
 
 
 class PersonalityPreset(str, Enum):
@@ -23,7 +23,12 @@ PRESET_VALUES: dict[PersonalityPreset, dict[Trait, int]] = {
 @dataclass(frozen=True)
 class Personality:
     preset: PersonalityPreset
-    values: Mapping[Trait, int]
+    traits: Mapping[Trait, TraitValue]
+
+    @property
+    def values(self) -> Mapping[Trait, int]:
+        """Compatibilidad: expone los valores actuales de cada rasgo."""
+        return {trait: value.current_value for trait, value in self.traits.items()}
 
     @classmethod
     def from_preset(cls, preset: PersonalityPreset | str) -> "Personality":
@@ -31,4 +36,7 @@ class Personality:
             resolved_preset = PersonalityPreset(preset)
         except ValueError as error:
             raise ValueError(f"Preset de personalidad no válido: {preset}") from error
-        return cls(preset=resolved_preset, values=PRESET_VALUES[resolved_preset].copy())
+        return cls(preset=resolved_preset, traits={
+            trait: TraitValue(base_value=value, current_value=value)
+            for trait, value in PRESET_VALUES[resolved_preset].items()
+        })

@@ -24,6 +24,21 @@ CREATE TABLE IF NOT EXISTS personality_traits (
     updated_at TEXT NOT NULL,
     PRIMARY KEY (pet_id, trait)
 );
+CREATE TABLE IF NOT EXISTS emotional_states (
+    pet_id TEXT NOT NULL REFERENCES pets(id),
+    emotion TEXT NOT NULL,
+    value INTEGER NOT NULL CHECK (value BETWEEN 0 AND 100),
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (pet_id, emotion)
+);
+CREATE TABLE IF NOT EXISTS personality_changes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pet_id TEXT NOT NULL REFERENCES pets(id),
+    trait TEXT NOT NULL,
+    delta INTEGER NOT NULL,
+    cause TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
 """
 
 
