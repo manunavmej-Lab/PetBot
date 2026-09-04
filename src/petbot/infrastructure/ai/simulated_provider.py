@@ -13,7 +13,7 @@ class SimulatedAIProvider:
         if any(word in text for word in ("triste", "mal", "cansado")):
             decision = {"speech": f"Lo siento, {request.owner_name}. Estoy contigo.", "expression": "sad", "actions": ["BLINK"]}
         elif any(word in text for word in ("hola", "buenas")):
-            decision = {"speech": f"¡Hola, {request.owner_name}! Soy {request.pet_name}. ¿Jugamos?", "expression": "happy", "actions": ["BLINK"]}
+            decision = {"speech": f"¡Hola, {request.owner_name}! Soy {request.pet_name}. Me gustaría jugar contigo.", "expression": "happy", "actions": ["BLINK"]}
         elif "sorpresa" in text or "guau" in text:
             decision = {"speech": "¡Vaya, eso sí que es sorprendente!", "expression": "surprised", "actions": ["BLINK"]}
         elif text.startswith("me gusta "):

@@ -1,0 +1,22 @@
+[Unit]
+Description=PETBOT en la pantalla de la Raspberry Pi
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/manugrande/PetBot
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=PETBOT_FULLSCREEN=1
+Environment=PETBOT_AUDIO_DEVICE=plughw:CARD=MAX98357A,DEV=0
+Environment=PETBOT_TTS_ENGINE=piper
+Environment=PETBOT_PIPER_EXECUTABLE=/home/manugrande/PetBot/.venv/bin/piper
+Environment=PETBOT_PIPER_MODEL=/home/manugrande/PetBot/models/voice/es_ES-sharvard-medium.onnx
+Environment=PETBOT_PIPER_SPEAKER=1
+ExecStart=/home/manugrande/PetBot/.venv/bin/python -m petbot.main
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

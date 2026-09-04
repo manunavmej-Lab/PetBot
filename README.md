@@ -58,6 +58,14 @@ También puedes escribir frases normales en el modo simulado, por ejemplo `hola`
 
 En macOS, la mascota escucha desde el inicio. Tras conceder los permisos de micrófono y reconocimiento de voz, di su nombre en cualquier parte de la frase para activarla: `Bulvi, hola`, `hola Bulvi` o `estoy triste, Bulvi`. Las frases sin su nombre se ignoran. El comando `hablar` sigue disponible para una prueba manual.
 
+## Visión en simulación
+
+Instala la dependencia opcional y usa `ver` en la consola para analizar una imagen de la webcam:
+
+```bash
+python -m pip install ".[vision]"
+```
+
 Para ejecutar las pruebas:
 
 ```bash

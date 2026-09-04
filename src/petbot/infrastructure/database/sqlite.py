@@ -54,6 +54,23 @@ CREATE TABLE IF NOT EXISTS memories (
 );
 CREATE INDEX IF NOT EXISTS memories_by_pet ON memories(pet_id, type, created_at DESC);
 CREATE INDEX IF NOT EXISTS memories_expiration ON memories(expires_at);
+CREATE TABLE IF NOT EXISTS known_people (
+    id TEXT PRIMARY KEY,
+    pet_id TEXT NOT NULL REFERENCES pets(id),
+    display_name TEXT NOT NULL,
+    face_embedding TEXT NOT NULL,
+    consented_at TEXT NOT NULL,
+    UNIQUE(pet_id, display_name)
+);
+CREATE TABLE IF NOT EXISTS pet_lifecycle (
+    pet_id TEXT PRIMARY KEY REFERENCES pets(id),
+    last_tick_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS pet_autonomy (
+    pet_id TEXT PRIMARY KEY REFERENCES pets(id),
+    mode TEXT NOT NULL,
+    is_sleeping INTEGER NOT NULL CHECK (is_sleeping IN (0, 1))
+);
 """
 
 

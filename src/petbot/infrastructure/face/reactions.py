@@ -19,6 +19,10 @@ class DesktopFaceReactions:
     def on_expression(self, expression: Expression) -> None:
         self._display.enqueue(lambda: self._show_expression(expression))
 
+    def on_autonomous_expression(self, expression: Expression) -> None:
+        """Estado de fondo: permanece hasta que la autonomía decida otro."""
+        self._display.enqueue(lambda: self._display.set_expression(expression))
+
     def on_blink(self) -> None:
         self._display.enqueue(self._display.blink)
 
